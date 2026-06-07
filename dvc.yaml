@@ -1,0 +1,57 @@
+stages:
+  split_data:
+    cmd: python -m src.data.splitter
+    deps:
+      - data/raw/HAM10000_metadata.csv
+      - src/data/splitter.py
+    outs:
+      - data/splits/train_split.csv
+      - data/splits/val_split.csv
+      - data/splits/test_split.csv
+
+  validate_data:
+    cmd: python -m src.validation.run_suite
+    deps:
+      - data/raw/
+      - data/splits/
+    outs:
+      - great_expectations/uncommitted/data_docs/
+
+  preprocess:
+    cmd: python -m src.preprocessing.run_pipeline
+    deps:
+      - data/raw/
+      - data/splits/
+      - src/preprocessing/
+    outs:
+      - data/processed/
+
+  train:
+    cmd: python scripts/run_training.py --config configs/training/efficientnet_b0.yaml
+    deps:
+      - data/processed/
+      - data/splits/
+      - src/training/
+      - src/models/
+      - scripts/run_training.py
+    outs:
+      - models/checkpoints/best_model.pt
+    metrics:
+      - models/metrics.json:
+          cache: false
+
+  export_onnx:
+    cmd: python -m src.optimization.onnx_exporter
+    deps:
+      - models/checkpoints/best_model.pt
+      - src/optimization/onnx_exporter.py
+    outs:
+      - models/onnx/efficientnet_b0_fp32.onnx
+
+  quantize:
+    cmd: python -m src.optimization.quantizer
+    deps:
+      - models/onnx/efficientnet_b0_fp32.onnx
+      - src/optimization/quantizer.py
+    outs:
+      - models/onnx/efficientnet_b0_int8.onnx

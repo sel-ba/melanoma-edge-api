@@ -1,0 +1,49 @@
+# ============================================================
+# Stage 1: Builder
+# ============================================================
+FROM python:3.10-slim AS builder
+
+WORKDIR /build
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --upgrade pip && \
+    pip install --prefix=/install --no-cache-dir -r requirements.txt
+
+
+# ============================================================
+# Stage 2: Runtime
+# ============================================================
+FROM python:3.10-slim AS runtime
+
+RUN groupadd -r melanoma && useradd -r -g melanoma melanoma
+
+WORKDIR /app
+
+COPY --from=builder /install /usr/local
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY src/ ./src/
+COPY configs/ ./configs/
+COPY models/onnx/ ./models/onnx/
+
+ENV PYTHONPATH=/app
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV NO_ALBUMENTATIONS_UPDATE=1
+ENV ENABLE_EXPLAIN=0
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8080/api/v1/health || exit 1
+
+USER melanoma
+
+EXPOSE 8080
+
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "2"]

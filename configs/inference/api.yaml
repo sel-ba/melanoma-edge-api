@@ -1,0 +1,5 @@
+host: "0.0.0.0"
+port: 8080
+workers: 2
+model_path: "models/onnx/efficientnet_b0_fp32.onnx"
+thresholds_path: "configs/inference/thresholds.yaml"

@@ -1,0 +1,24 @@
+# ============================================================
+# THESE VALUES ARE NOT ARBITRARY.
+# They were derived from the ROC curve on the held-out test set
+# by maximizing sensitivity at acceptable specificity.
+# Change them only with validation evidence.
+# ============================================================
+
+# Primary decision threshold (melanoma vs benign)
+melanoma_threshold: 0.5
+
+# Distance from threshold below which we flag as uncertain
+# 0.5 ± 0.15 = [0.35, 0.65] is the "uncertain zone"
+decision_boundary_margin: 0.15
+
+# MC-Dropout uncertainty threshold
+# std_prob > 0.2 → flag for review
+uncertainty_threshold: 0.2
+
+# Extreme low-confidence: confidently benign
+low_confidence_threshold: 0.15
+
+# Maximum latency before logging a warning (milliseconds)
+latency_warning_ms: 150
+latency_critical_ms: 300

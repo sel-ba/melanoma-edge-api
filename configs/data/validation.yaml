@@ -1,0 +1,45 @@
+# Great Expectations suite configuration
+
+datasource_name: ham10000_metadata
+expectation_suite_name: ham10000_suite
+
+expectations:
+  table:
+    - expect_table_row_count_to_be_between:
+        min_value: 10000
+        max_value: 10100
+    - expect_table_columns_to_match_ordered_list:
+        columns:
+          - lesion_id
+          - image_id
+          - dx
+          - dx_type
+          - age
+          - sex
+          - localization
+
+  columns:
+    image_id:
+      - expect_column_values_to_not_be_null
+      - expect_column_values_to_be_unique
+
+    dx:
+      - expect_column_values_to_not_be_null
+      - expect_column_values_to_be_in_set:
+          value_set: ["mel", "nv", "bcc", "akiec", "bkl", "df", "vasc"]
+
+    age:
+      - expect_column_values_to_be_between:
+          min_value: 0
+          max_value: 120
+          mostly: 0.95
+
+image_integrity:
+  min_width: 100
+  min_height: 100
+  allowed_modes: ["RGB", "RGBA"]
+  max_workers: 8
+
+duplicate_detection:
+  hash_size: 16
+  hamming_threshold: 5

@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: melanoma-api
+  labels:
+    app: melanoma-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: melanoma-api
+  template:
+    metadata:
+      labels:
+        app: melanoma-api
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/yourusername/melanoma-api:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: LOG_LEVEL
+              value: "info"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          readinessProbe:
+            httpGet:
+              path: /api/v1/ready
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: melanoma-api
+spec:
+  selector:
+    app: melanoma-api
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: ClusterIP
