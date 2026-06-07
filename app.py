@@ -198,7 +198,7 @@ CUSTOM_CSS = """
 }
 """
 
-with gr.Blocks(title="Melanoma Detection AI") as demo:
+with gr.Blocks(css=CUSTOM_CSS, title="Melanoma Detection AI") as demo:
     gr.HTML(
         """<div class="main-header">
         <h1>Melanoma Detection AI</h1>
@@ -312,4 +312,4 @@ with gr.Blocks(title="Melanoma Detection AI") as demo:
 
 # ── Entrypoint ──────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860, share=False, css=CUSTOM_CSS)
+    demo.launch(server_name="0.0.0.0", server_port=7860)
