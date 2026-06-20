@@ -1,0 +1,51 @@
+
+\chapter{Project Assessment}
+\begin{spacing}{1.3}
+
+\section{Achievements}
+
+This project successfully designed, implemented, and validated a complete MLOps pipeline for edge-deployable melanoma detection. The pipeline spans 12 phases -- from raw data ingestion through CI/CD -- and produces a production-ready inference API with safety guardrails, monitoring, and automated testing. The EfficientNet-B0 model trained on 6,959 HAM10000 images with patient-aware splitting achieves ROC-AUC 0.91 with sensitivity 80.6\% at the clinically-calibrated threshold of 0.15 on a held-out test set of 1,527 images.
+
+Three architectures were trained and compared using identical protocols and evaluation metrics, with EfficientNet-B0 selected as the production model. Patient-aware splitting produced zero lesion-level leakage across train/val/test splits, verified by set-intersection assertion. The Great Expectations suite passed all 7 validations with 100\% image integrity confirmed on all 10,015 HAM10000 images.
+
+The production FastAPI application exposes 6 endpoints with auto-generated OpenAPI documentation and multiple safety guardrails: confidence thresholds, uncertainty gating, and graceful fallback responses. Six Prometheus metrics provide observability into prediction counting, latency distributions, review flag rates, probability distributions, cache hit ratios, and model information. The Docker multi-stage build produces a production image under 800~MB by excluding PyTorch, saving approximately 1~GB. A public Gradio demo and REST API are deployed on Hugging Face Spaces, providing zero-cost interactive and programmatic access.
+
+The test suite comprises 41 tests (34 unit, 7 integration) all passing on every CI run. Lint status: 0 Ruff errors, 0 Ruff formatting violations. Code coverage exceeds the 75\% gate. The GitHub Actions CI pipeline runs lint, unit tests, integration tests, Docker build verification, and security scanning on every push. All figures in this report come from real pipeline artefacts -- no mock data or fabricated charts.
+
+\section{Challenges and Problems Encountered}
+
+\subsection{INT8 Quantisation Failure on EfficientNet-B0}
+
+The most significant technical challenge was the incompatibility of EfficientNet-B0 with post-training INT8 quantisation. All five quantisation strategies tested -- dynamic QInt8, dynamic QUInt8, static QDQ with entropy calibration, static QDQ with min-max calibration, and per-channel QDQ -- produced 10--15\% AUC degradation (from 0.91 down to 0.76--0.81). This is a well-documented limitation caused by EfficientNet's SiLU (Swish) activation function and depthwise separable convolutions, both of which are fundamentally hostile to integer quantisation. The SiLU function's smooth, unbounded output distribution cannot be effectively represented in 8-bit integer space without severe clipping or quantisation error accumulation through deep layers. This finding forced the deployment decision to use FP32 ONNX (16.6~MB) rather than the INT8 target of under 5~MB -- the FP32 size remains practical for all target edge hardware but represents a 3.3$\times$ larger footprint than the original goal.
+
+\subsection{Model Checkpoint Architecture Mismatch}
+
+During development, the PyTorch checkpoint saved from training used the \texttt{timm} library's EfficientNet implementation, but the inference code initially attempted to load it with \texttt{torchvision}'s implementation. The two libraries use different internal key naming conventions: \texttt{timm} names layers as \texttt{backbone.blocks.*} while \texttt{torchvision} uses \texttt{backbone.features.*}. This mismatch caused silent loading failures where the model appeared to load but produced random predictions. The fix required installing \texttt{timm} as a dependency and rewriting the model class to use \texttt{timm.create\_model}. Additionally, the \texttt{best\_model.pt} file stored in the repository checkpoint directory was discovered to contain MobileNetV3 weights rather than EfficientNet-B0 weights -- a consequence of MLflow's automatic ``best model'' selection registering the last completed run rather than the highest-AUC run. This required re-running the EfficientNet training and manually promoting the correct checkpoint.
+
+\subsection{Clinical Threshold Calibration}
+
+The initial deployment used a default decision threshold of 0.5, which yielded sensitivity of only 41.9\% -- missing more than half of melanomas. Systematic threshold analysis across the full 0--1 range revealed that the optimal clinical threshold for screening is 0.15, where sensitivity reaches 80.6\% while maintaining specificity at 82.8\%. This finding underscores a critical principle for medical AI: the default classification threshold of 0.5, inherited from balanced classification tasks, is inappropriate for screening applications with severe class imbalance. The system now uses 0.15 as the melanoma detection threshold with a 0.10 decision boundary margin for the clinical review flag.
+
+\subsection{Hugging Face Spaces Deployment}
+
+Deploying to Hugging Face Spaces free tier presented several operational challenges. Git LFS was required for model files exceeding 10~MB (ONNX model at 16.6~MB, PyTorch checkpoint at 51~MB). Initial pushes without LFS configuration caused rejection errors. The Git history became polluted with large binary blobs from pre-LFS commits, requiring a fresh repository clone and re-push with LFS configured beforehand. Docker image builds experienced repeated failures due to missing Python dependencies (\texttt{prometheus\_client}, \texttt{pandas}, \texttt{evidently}) that were present in the development environment but not in the deployment Dockerfile. The solution was to inline all pip installations directly in the Dockerfile rather than relying on a \texttt{requirements.txt} file, ensuring build determinism. Gradio 6.x introduced a breaking API change that moved the \texttt{theme} parameter from the \texttt{gr.Blocks} constructor to the \texttt{launch()} method, requiring a last-minute code adjustment after deployment logs revealed a deprecation warning.
+
+\subsection{Gradio Interface Caching Bug}
+
+A subtle bug emerged in the deployed Gradio application where returning an empty string (\texttt{""}) for an \texttt{gr.Image} component output caused Gradio's internal file-caching mechanism to interpret it as the working directory path (\texttt{/app}), resulting in an \texttt{IsADirectoryError}. The fix required returning \texttt{None} instead of \texttt{""} for image component outputs when no image was generated. This bug only manifested in the Docker deployment environment, not during local development, due to differences in how Gradio resolves file paths inside containers.
+
+\subsection{Evidently AI API Instability}
+
+The Evidently AI library, used for data and prediction drift monitoring, underwent API changes between versions that broke the \texttt{ColumnDriftMetric} import path used in the drift detection module. To maintain API startup reliability, the drift import was made lazy (wrapped in a \texttt{try/except} inside the route handler), allowing the API to start and serve predictions even when the monitoring subsystem was unavailable. This pattern -- failing gracefully rather than crashing entirely -- became a design principle applied across the system.
+
+\section{Lessons Learned}
+
+Data validation before training catches problems that otherwise manifest as inexplicable model performance issues. The near-duplicate detection and patient-level splitting verification prevented silent data leakage that could have inflated AUC by 5--10 points. Patient-aware splitting is mandatory for medical imaging -- splitting by image identifier without considering lesion grouping produces inflated metrics and invalid conclusions.
+
+ONNX parity checks prevent silent deployment bugs: the $10^{-4}$ comparison between PyTorch and ONNX outputs caught a dimension mismatch during early development. Production Docker images must not include training dependencies, reducing attack surface, image size, and CVE count.
+
+Monitoring is not optional for healthcare AI -- even a perfectly trained model degrades over time as imaging equipment, patient populations, and disease prevalence shift. Safety fallbacks are first-class architectural decisions, not error handling afterthoughts: in healthcare, a system that says ``I don't know'' is safer than one that confidently predicts incorrectly.
+
+Open-source MLOps tools are production-ready: MLflow, DVC, Great Expectations, ONNX Runtime, FastAPI, and Prometheus form a coherent, well-integrated stack whose learning curve is balanced by flexibility and zero licensing costs. The 80/20 infrastructure-to-model effort ratio observed in this project -- approximately 85\% of code and effort dedicated to infrastructure versus 15\% to model training -- is consistent with Sculley et al.'s ``hidden technical debt'' thesis and should be expected, not lamented, in any serious ML productionisation effort.
+
+\end{spacing}

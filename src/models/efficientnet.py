@@ -1,13 +1,17 @@
 from __future__ import annotations
 
+import timm
 import torch
 import torch.nn as nn
-import timm
 
 
 class MelanomaClassifier(nn.Module):
-    """
-    EfficientNet-B0 fine-tuned for melanoma detection.
+    """EfficientNet-B0 fine-tuned for melanoma detection.
+
+    Uses timm (PyTorch Image Models) backbone for consistency with the
+    trained checkpoints.  ``timm.create_model('efficientnet_b0', num_classes=0)``
+    produces the feature extractor whose state-dict keys align with the
+    artifacts stored under ``models/checkpoints/best_model.pt``.
     """
 
     def __init__(
@@ -22,13 +26,13 @@ class MelanomaClassifier(nn.Module):
         self.num_classes = num_classes
 
         self.backbone = timm.create_model(
-            model_name,
+            "efficientnet_b0",
             pretrained=pretrained,
-            num_classes=0,
-            global_pool="avg",
+            num_classes=0,          # feature-extractor only
+            drop_rate=0.0,          # dropout handled in our classifier head
         )
+        feature_dim = self.backbone.num_features  # 1280 for B0
 
-        feature_dim = self.backbone.num_features
         self.classifier = nn.Sequential(
             nn.BatchNorm1d(feature_dim),
             nn.Dropout(p=dropout_rate),

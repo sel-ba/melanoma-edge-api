@@ -1,0 +1,10 @@
+Test Images for Melanoma Detection AI
+======================================
+
+1. ISIC_0025964.jpg — MELANOMA (histo-confirmed, chest)
+2. ISIC_0030623.jpg — MELANOMA (histo-confirmed, chest)
+3. ISIC_0025177.jpg — BENIGN NEVUS (histo-confirmed, lower extremity)
+4. ISIC_0027419.jpg — BENIGN KERATOSIS (histo-confirmed, scalp)
+5. ISIC_0027008.jpg — DERMATOFIBROMA (histo-confirmed, back)
+
+All images from the HAM10000 dataset.

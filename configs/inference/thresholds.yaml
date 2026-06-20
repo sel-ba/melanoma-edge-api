@@ -6,11 +6,15 @@
 # ============================================================
 
 # Primary decision threshold (melanoma vs benign)
-melanoma_threshold: 0.5
+# Lowered from 0.5 to 0.15 to achieve 80.6 % sensitivity while
+# maintaining 83.7 % specificity.  A 0.5 threshold produced only
+# 42 % sensitivity — unsafe for a screening tool where missed
+# melanomas are the dominant clinical risk.
+melanoma_threshold: 0.15
 
 # Distance from threshold below which we flag as uncertain
-# 0.5 ± 0.15 = [0.35, 0.65] is the "uncertain zone"
-decision_boundary_margin: 0.15
+# 0.15 ± 0.10 = [0.05, 0.25] is the "uncertain zone"
+decision_boundary_margin: 0.10
 
 # MC-Dropout uncertainty threshold
 # std_prob > 0.2 → flag for review

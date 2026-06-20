@@ -1,0 +1,6 @@
+{
+  "run_id": "9c74ae3a097a4f2f968767c0882c9262",
+  "tracking_uri": "file:///home/selba/Desktop/ENSIAS/Mlops/PFA/code/mlflow",
+  "best_val_auc": 0.8687181445764507,
+  "metrics_plot": "/home/selba/Desktop/ENSIAS/Mlops/PFA/code/reports/figures/training_full_metrics.png"
+}

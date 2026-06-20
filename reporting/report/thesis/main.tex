@@ -1,0 +1,116 @@
+\documentclass[a4paper,12pt]{report}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[top=2cm, bottom=2cm, left=2cm, right=2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{amsmath,amssymb}
+\usepackage{array,tabularx,booktabs,multirow}
+\usepackage{setspace}
+\usepackage{caption,subcaption}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, shapes.multipart, calc, backgrounds, fit}
+
+\raggedbottom
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+\hypersetup{
+  pdfauthor={ENSIAS - 2IA},
+  pdftitle={MLOps Pipeline for Edge Melanoma Detection},
+  pdfsubject={End-of-Year Project Report},
+  pdfkeywords={MLOps, Melanoma, ONNX, Docker, CI/CD},
+  pdfstartview={FitH}
+}
+
+\begin{document}
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+\input{./title.tex}
+\newpage ~ \thispagestyle{empty} \newpage
+
+\pagenumbering{roman}
+\input{./remerciements.tex}
+\newpage
+\input{./resume.tex}
+\newpage
+\input{./abrv.tex}
+\newpage
+
+\listoffigures
+\newpage
+\tableofcontents
+\newpage
+
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\input{./IntroGen.tex}
+\input{./presentation.tex}
+\input{./existant.tex}
+\input{./besoins.tex}
+\input{./autre_partie.tex}
+\input{./resultats.tex}
+\input{./bilan.tex}
+\input{./Conclusion.tex}
+
+\appendix
+\input{./annexe1.tex}
+\input{./annexe2.tex}
+
+\nocite{*}
+\bibliographystyle{plain}
+\bibliography{bibliographie.bib}
+
+% ---- QR Codes Page ----
+\newpage
+\thispagestyle{empty}
+\vspace*{3cm}
+\begin{center}
+{\huge \bfseries Project Resources}\\[1.5cm]
+
+\begin{minipage}{0.30\textwidth}
+\centering
+\fbox{\begin{minipage}{0.85\textwidth}
+\centering\vspace{2cm}
+\textbf{[QR Code]}\\[0.3cm]
+{\footnotesize Gradio Demo}
+\vspace{2cm}
+\end{minipage}}\\[0.5cm]
+{\normalsize\texttt{selba-melanoma-gradio.hf.space}}
+\end{minipage}
+\hfill
+\begin{minipage}{0.30\textwidth}
+\centering
+\fbox{\begin{minipage}{0.85\textwidth}
+\centering\vspace{2cm}
+\textbf{[QR Code]}\\[0.3cm]
+{\footnotesize API Documentation}
+\vspace{2cm}
+\end{minipage}}\\[0.5cm]
+{\normalsize\texttt{selba-melanoma-api.hf.space/docs}}
+\end{minipage}
+\hfill
+\begin{minipage}{0.30\textwidth}
+\centering
+\fbox{\begin{minipage}{0.85\textwidth}
+\centering\vspace{2cm}
+\textbf{[QR Code]}\\[0.3cm]
+{\footnotesize Source Code}
+\vspace{2cm}
+\end{minipage}}\\[0.5cm]
+{\normalsize\texttt{github.com/selba/melanoma-edge-api}}
+\end{minipage}
+
+\vspace{1.5cm}
+{\normalsize Scan the QR codes to access the interactive demo, REST API documentation, and source code repository.}
+
+\end{center}
+
+\end{document}

@@ -1,0 +1,15 @@
+{
+  "batch_images_shape": [
+    32,
+    3,
+    224,
+    224
+  ],
+  "batch_labels_shape": [
+    32
+  ],
+  "batch_label_counts": {
+    "0": 26,
+    "1": 6
+  }
+}

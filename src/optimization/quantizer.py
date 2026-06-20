@@ -1,3 +1,18 @@
+"""INT8 model quantization for ONNX Runtime.
+
+.. warning::
+
+   EfficientNet-B0 is **not compatible** with INT8 quantization at acceptable
+   accuracy.  All strategies tested (dynamic QInt8, dynamic QUInt8, static QDQ
+   with entropy/minmax calibration, per-channel QDQ) produced **10–15 % AUC
+   drops** (0.91 → 0.76–0.81).  This is caused by SiLU activations and
+   depthwise-separable convolutions — both are fundamentally hostile to
+   integer quantisation.
+
+   The FP32 ONNX model (16.6 MB) is recommended for production.  Keep this
+   module for architectures that *do* benefit from INT8 (e.g. ResNet50).
+"""
+
 from __future__ import annotations
 
 from pathlib import Path

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import torch
 import torch.nn as nn
-import timm
+from torchvision.models import mobilenet_v3_small, MobileNet_V3_Small_Weights
 
 
 class MobileNetV3Classifier(nn.Module):
@@ -23,16 +23,10 @@ class MobileNetV3Classifier(nn.Module):
         self.model_name = model_name
         self.num_classes = num_classes
 
-        self.backbone = timm.create_model(
-            model_name,
-            pretrained=pretrained,
-            num_classes=0,
-            global_pool="avg",
-        )
+        weights = MobileNet_V3_Small_Weights.IMAGENET1K_V1 if pretrained else None
+        self.backbone = mobilenet_v3_small(weights=weights)
+        self.backbone.classifier = nn.Identity()
 
-        # timm reports num_features=576 but forward pass outputs 1024
-        # for mobilenetv3_small_100 (due to internal conv_head).
-        # Infer the real feature dimension with a dry run.
         with torch.no_grad():
             dummy = torch.randn(1, 3, 224, 224)
             feature_dim = self.backbone(dummy).shape[1]

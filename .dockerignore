@@ -16,3 +16,5 @@ great_expectations/
 models/*
 !models/onnx/
 !models/onnx/**
+!models/checkpoints/
+!models/checkpoints/**

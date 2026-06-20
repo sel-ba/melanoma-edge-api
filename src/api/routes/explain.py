@@ -74,9 +74,7 @@ def _load_explain_assets(project_root: Path) -> tuple[MelanomaClassifier, GradCA
     model = model.to(_device)
     model.eval()
 
-    target_layer = "backbone.conv_head"
-    if target_layer not in dict(model.named_modules()):
-        target_layer = _find_last_conv_layer_name(model)
+    target_layer = _find_last_conv_layer_name(model)
     if target_layer is None:
         raise RuntimeError("No conv layer found for Grad-CAM")
 

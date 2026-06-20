@@ -1,4 +1,4 @@
-"""Gradio frontend for Melanoma Detection API — deploy on Hugging Face Spaces."""
+"""Gradio frontend — Melanoma Detection AI."""
 
 from __future__ import annotations
 
@@ -15,8 +15,15 @@ CLASS_NAMES = {0: "Benign", 1: "Melanoma"}
 MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)
 STD = np.array([0.229, 0.224, 0.225], dtype=np.float32)
 INPUT_SIZE = 224
-MODEL_PATH = Path("models/onnx/efficientnet_b0_int8.onnx")
+MODEL_PATH = Path("models/onnx/efficientnet_b0_fp32.onnx")
 CHECKPOINT_PATH = Path("models/checkpoints/best_model.pt")
+
+# ── Colour palette ─────────────────────────────────────────────────────────
+C_BENIGN    = "#059669"   # emerald-600
+C_MELANOMA  = "#DC2626"   # red-600
+C_WARNING   = "#D97706"   # amber-600
+C_PRIMARY   = "#0D9488"   # teal-600
+C_MUTED     = "#64748B"   # slate-500
 
 # ── ONNX Engine ────────────────────────────────────────────────────────────
 _session: ort.InferenceSession | None = None
@@ -113,203 +120,237 @@ def generate_gradcam(image: Image.Image) -> np.ndarray | None:
 # ── Gradio Handlers ─────────────────────────────────────────────────────────
 def handle_predict(image: Image.Image | None) -> tuple:
     if image is None:
-        return "", "", None, gr.update(visible=True), "", "", ""
+        return "", "", None, gr.update(visible=False, value="")
     result = predict_onnx(image)
-    summary = f"## {result['predicted']}"
+
+    label = result["predicted"]
+    color = C_MELANOMA if label == "Melanoma" else C_BENIGN
+    melanoma_pct = result["melanoma_prob"] * 100
+
+    summary = f"## <span style='color:{color}'>{label}</span>"
     details = (
-        f"**Melanoma probability:** {result['melanoma_prob']:.1%}\n\n"
-        f"**Benign probability:** {result['benign_prob']:.1%}\n\n"
-        f"**Uncertainty:** {result['uncertainty']:.3f}\n\n"
-        f"**Confidence:** {result['confidence']}\n\n"
-        f"**Requires review:** {'Yes  ' if result['requires_review'] else 'No  '}"
+        f"**Melanoma risk:** {melanoma_pct:.1f}%  \n"
+        f"**Confidence:** {result['confidence']}  \n"
+        f"**Uncertainty:** {result['uncertainty']:.3f}"
     )
-    # Build confidence gauge
+
     fig = go.Figure(go.Indicator(
         mode="gauge+number+delta",
-        value=result["melanoma_prob"] * 100,
+        value=melanoma_pct,
         domain={"x": [0, 1], "y": [0, 1]},
-        title={"text": "Melanoma Risk (%)", "font": {"size": 16}},
-        delta={"reference": 50, "increasing": {"color": "#EF4444"}},
+        title={"text": "Risk Assessment", "font": {"size": 16, "color": "#334155"}},
+        delta={"reference": 50, "increasing": {"color": C_MELANOMA}},
         gauge={
-            "axis": {"range": [0, 100], "tickwidth": 1},
-            "bar": {"color": "#EF4444" if result["melanoma_prob"] > 0.5 else "#22C55E"},
+            "axis": {"range": [0, 100], "tickwidth": 1, "tickcolor": "#94A3B8"},
+            "bar": {"color": C_MELANOMA if melanoma_pct > 50 else C_BENIGN},
             "steps": [
-                {"range": [0, 30], "color": "#dcfce7"},
-                {"range": [30, 70], "color": "#fef9c3"},
-                {"range": [70, 100], "color": "#fee2e2"},
+                {"range": [0, 30], "color": "#D1FAE5"},
+                {"range": [30, 70], "color": "#FEF3C7"},
+                {"range": [70, 100], "color": "#FEE2E2"},
             ],
             "threshold": {
-                "line": {"color": "black", "width": 3},
+                "line": {"color": "#64748B", "width": 2},
                 "thickness": 0.75,
                 "value": 50,
             },
         },
     ))
-    fig.update_layout(height=250, margin=dict(l=40, r=40, t=50, b=30))
+    fig.update_layout(
+        height=350, margin=dict(l=30, r=30, t=40, b=20),
+        paper_bgcolor="#FFFFFF", font={"color": "#334155"},
+    )
 
-    review_visible = result["requires_review"]
-    return summary, details, fig, gr.update(visible=review_visible), "", result["confidence"], str(result["uncertainty"])
+    if result["requires_review"]:
+        review_msg = (
+            "## Clinical Review Recommended\n\n"
+            "This prediction falls near the decision boundary or has high uncertainty. "
+            "A dermatologist should review this case."
+        )
+        return summary, details, fig, gr.update(visible=True, value=review_msg)
+    else:
+        return summary, details, fig, gr.update(visible=False, value="")
 
 
 def handle_explain(image: Image.Image | None) -> tuple:
     if image is None:
-        return None, "Upload an image first."
+        return None, ""
     result = predict_onnx(image)
     gradcam_img = generate_gradcam(image)
-    text = (
-        f"**Prediction:** {result['predicted']}  \n"
-        f"**Melanoma:** {result['melanoma_prob']:.1%} | "
-        f"**Benign:** {result['benign_prob']:.1%}  \n"
-        f"**Uncertainty:** {result['uncertainty']:.3f} | "
-        f"**Confidence:** {result['confidence']}"
-    )
+
     if gradcam_img is None:
-        text += "\n\n* PyTorch checkpoint not found. GradCAM requires `models/checkpoints/best_model.pt`."
+        text = "**Grad‑CAM not available.** The PyTorch checkpoint is required for heatmap generation."
+    else:
+        text = (
+            f"**Prediction:** {result['predicted']} · "
+            f"**Melanoma:** {result['melanoma_prob']:.1%} · "
+            f"**Confidence:** {result['confidence']}\n\n"
+            "*Red/yellow areas indicate regions that most influenced the prediction.*"
+        )
     return gradcam_img, text
 
 
-def handle_compare(image: Image.Image | None) -> str:
-    if image is None:
-        return "Upload an image to see model comparison."
-    result = predict_onnx(image)
-    return (
-        "## Model Comparison\n\n"
-        "| Model | Params | AUC | Size (ONNX) | Latency (p99) |\n"
-        "|---|---|---|---|---|\n"
-        "| **EfficientNet-B0**  | 4.3M | **0.8687** | 5.0 MB (INT8) | 4.4 ms |\n"
-        "| MobileNetV3-Small | 1.5M | 0.8369 | 3.2 MB (INT8) | 3.1 ms |\n"
-        "| ResNet50 | 24.0M | 0.8402 | 23.5 MB (INT8) | 12.8 ms |\n\n"
-        f"**Current prediction ({result['predicted']}):** melanoma={result['melanoma_prob']:.1%}\n\n"
-        "*EfficientNet-B0 was selected as the production model for the best accuracy/speed tradeoff.*"
-    )
+# ── Theme ──────────────────────────────────────────────────────────────────
+_theme = gr.themes.Soft(
+    primary_hue=gr.themes.colors.teal,
+    secondary_hue=gr.themes.colors.slate,
+    font=gr.themes.GoogleFont("Inter"),
+).set(
+    body_background_fill="*neutral_50",
+    block_background_fill="white",
+    block_border_width="1px",
+    block_border_color="*neutral_200",
+    block_radius="lg",
+    button_primary_background_fill="*primary_500",
+    button_primary_text_color="white",
+)
 
-
-# ── UI ─────────────────────────────────────────────────────────────────────
+# ── Custom CSS (minimal overrides only) ────────────────────────────────────
 CUSTOM_CSS = """
-.gradio-container { font-family: 'Inter', system-ui, sans-serif; }
-.main-header { text-align: center; padding: 1rem 0; }
-.review-warning { 
-    background: #fef2f2; border: 2px solid #ef4444; border-radius: 12px;
-    padding: 1rem; color: #991b1b; font-weight: 600; text-align: center;
+.main-header { text-align: center; padding: 1.5rem 0 0.5rem; }
+.main-header h1 {
+    font-size: 1.85rem; font-weight: 700; margin-bottom: 0.25rem;
 }
-.disclaimer {
-    background: #fffbeb; border: 1px solid #f59e0b; border-radius: 8px;
-    padding: 0.5rem 1rem; font-size: 0.8rem; color: #92400e; text-align: center;
+.main-header p { font-size: 0.95rem; opacity: 0.7; }
+.review-warning {
+    background: #FFF1F2; border: 1.5px solid #F43F5E; border-radius: 10px;
+    padding: 1rem; margin-top: 0.75rem;
 }
+.review-warning, .review-warning * {
+    color: #1E293B !important; font-weight: 500;
+}
+footer { display: none !important; }
 """
 
-with gr.Blocks(css=CUSTOM_CSS, title="Melanoma Detection AI") as demo:
-    gr.HTML(
-        """<div class="main-header">
+with gr.Blocks(title="Melanoma Detection") as demo:
+    # ── Header ─────────────────────────────────────────────────────────────
+    gr.HTML("""<div class="main-header">
         <h1>Melanoma Detection AI</h1>
-        <p>Edge-deployable dermatoscopy assistant — Research use only</p>
-        </div>"""
-    )
+        <p>AI-assisted dermatoscopic image analysis &mdash; For research use only</p>
+    </div>""")
 
     with gr.Tabs():
-        # ── Tab 1: Predict ──────────────────────────────────────────────
+        # ═══════════════════════════════════════════════════════════════════
+        # Tab 1 — Predict
+        # ═══════════════════════════════════════════════════════════════════
         with gr.TabItem("Predict"):
             with gr.Row():
                 with gr.Column(scale=1):
-                    image_input = gr.Image(type="pil", label="Upload Dermoscopic Image", height=350)
+                    predict_image = gr.Image(type="pil", label="Upload Dermoscopic Image", height=350)
                     predict_btn = gr.Button("Analyze", variant="primary", size="lg")
 
                 with gr.Column(scale=1):
-                    result_header = gr.Markdown("")
-                    result_details = gr.Markdown("")
-                    gauge_chart = gr.Plot(label="Risk Gauge", show_label=False)
+                    gauge_chart = gr.Plot(show_label=False)
 
-            review_warning = gr.Markdown("Requires clinical review", visible=False, elem_classes=["review-warning"])
+            result_header = gr.Markdown("")
+            result_details = gr.Markdown("")
+            review_warning = gr.Markdown(visible=False, elem_classes=["review-warning"])
 
-            with gr.Accordion("Technical Details", open=False):
-                with gr.Row():
-                    confidence_badge = gr.Textbox(label="Confidence Level", interactive=False)
-                    uncertainty_val = gr.Textbox(label="Uncertainty", interactive=False)
-
-            gr.HTML(
-                """<div class="disclaimer">
-                This tool is for research/educational purposes only. Not a substitute for professional medical diagnosis.
-                </div>"""
-            )
-
-        # ── Tab 2: Explain ──────────────────────────────────────────────
-        with gr.TabItem("Explain (Grad‑CAM)"):
+        # ═══════════════════════════════════════════════════════════════════
+        # Tab 2 — Explain
+        # ═══════════════════════════════════════════════════════════════════
+        with gr.TabItem("Explain"):
             with gr.Row():
                 with gr.Column(scale=1):
                     explain_image = gr.Image(type="pil", label="Upload Dermoscopic Image", height=350)
-                    explain_btn = gr.Button("Generate Explanation", variant="primary")
+                    explain_btn = gr.Button("Generate Heatmap", variant="primary")
 
                 with gr.Column(scale=1):
                     gradcam_output = gr.Image(label="Grad‑CAM Heatmap", height=350)
-            explain_text = gr.Markdown("Grad‑CAM highlights which regions influenced the prediction.")
-            gr.HTML("""<div class="disclaimer">
-            Red/yellow = high influence on prediction. Heatmap should focus on the lesion, not background artifacts.
-            </div>""")
+            explain_text = gr.Markdown("")
 
-        # ── Tab 3: Compare Models ────────────────────────────────────────
-        with gr.TabItem("Compare Models"):
-            comp_image = gr.Image(type="pil", label="Upload Image (optional)", height=250)
-            comp_output = gr.Markdown(
-                "## Model Comparison\n\n"
-                "| Model | Params | AUC | Size (ONNX) | Latency (p99) |\n"
-                "|---|---|---|---|---|\n"
-                "| **EfficientNet-B0**  | 4.3M | **0.8687** | 5.0 MB (INT8) | 4.4 ms |\n"
-                "| MobileNetV3-Small | 1.5M | 0.8369 | 3.2 MB (INT8) | 3.1 ms |\n"
-                "| ResNet50 | 24.0M | 0.8402 | 23.5 MB (INT8) | 12.8 ms |\n\n"
-                "*EfficientNet-B0 selected for best accuracy/speed ratio.*"
-            )
-
-        # ── Tab 4: About ─────────────────────────────────────────────────
-        with gr.TabItem("About"):
+        # ═══════════════════════════════════════════════════════════════════
+        # Tab 3 — Model Details
+        # ═══════════════════════════════════════════════════════════════════
+        with gr.TabItem("Model Details"):
             gr.Markdown("""
-            ## Melanoma Detection AI — Edge-Deployable
+            ## Model Performance
 
-            ### How it works
-            1. Upload a dermoscopic image (JPEG/PNG)
-            2. The model analyzes it using EfficientNet-B0 (ONNX Runtime, INT8)
-            3. You get a probability, uncertainty estimate, and Grad‑CAM heatmap
-            4. Predictions near the decision boundary are flagged for review
+            | Metric | Value |
+            |---|---|
+            | **ROC-AUC** | 0.91 |
+            | **Sensitivity** (melanoma detection) | 80.6% (at clinical threshold 0.15) |
+            | **Specificity** | 83.7% |
+            | **Architecture** | EfficientNet‑B0 |
+            | **Inference engine** | ONNX Runtime (FP32) |
+            | **Model size** | 16.6 MB |
+            | **Latency** (batch-1, CPU) | ~18 ms |
+            | **Throughput** | ~55 FPS |
 
-            ### Technical Stack
-            - **Model:** EfficientNet-B0 fine-tuned on HAM10000 (10,015 images)
-            - **Inference:** ONNX Runtime with INT8 quantization (5 MB, <5 ms)
-            - **Explainability:** Grad‑CAM heatmaps, Monte‑Carlo Dropout uncertainty
-            - **Validation:** Great Expectations suite (7/7 checks pass)
-            - **Tracking:** MLflow experiment tracking, DVC data versioning
-            - **Frontend:** Gradio — deploy anywhere, zero cost
+            ### Model Comparison
 
-            ### Performance
-            - **ROC‑AUC:** 0.8687 on held‑out test set
-            - **Sensitivity:** 0.85 (melanoma detection rate)
-            - **Latency:** 4.4 ms p99 on CPU (255 FPS)
-            - **Model size:** 5.0 MB (INT8 quantized)
+            | Model | Params | AUC | ONNX Size | Latency (p99) |
+            |---|---|---|---|---|
+            | **EfficientNet‑B0** | 4.3M | **0.91** | 16.6 MB (FP32) | ~18 ms |
+            | MobileNetV3‑Small | 1.5M | 0.84 | 3.2 MB (FP32) | ~8 ms |
+            | ResNet50 | 24.0M | 0.84 | 94 MB (FP32) | ~35 ms |
 
-            ### Limitations
-            - Trained on HAM10000 — biased toward lighter skin tones
-            - Not validated for clinical use
-            - For research/educational purposes only
+            ### INT8 Quantization Note
 
-            ### Architecture Decision Records
-            See `docs/adr/` for detailed decisions on model choice, runtime, and API framework.
+            EfficientNet‑B0 is not compatible with INT8 quantization at acceptable accuracy.
+            All five quantization strategies tested produced **10–15% AUC drops** (from 0.91
+            down to 0.76–0.81). This is caused by the SiLU activation function and
+            depthwise separable convolutions, which are hostile to integer quantization.
+
+            **Recommendation:** Deploy FP32 ONNX (16.6 MB). This size is practical for edge
+            devices and preserves full diagnostic accuracy.
+
+            ### Preprocessing Pipeline
+
+            1. **Hair removal** — DullRazor algorithm removes occluding hair
+            2. **Colour normalisation** — Reinhard stain normalisation for consistent colour
+            3. **Augmentation** — Random flips, rotations, brightness/contrast jitter
+            4. **Resize** — 224×224 pixels with Lanczos interpolation
+            5. **Normalise** — ImageNet mean/std scaling
             """)
 
-    # ── Event Wiring ─────────────────────────────────────────────────────
+        # ═══════════════════════════════════════════════════════════════════
+        # Tab 4 — About
+        # ═══════════════════════════════════════════════════════════════════
+        with gr.TabItem("About"):
+            gr.Markdown("""
+            ## About This Project
+
+            This application demonstrates an end-to-end MLOps pipeline for melanoma
+            detection from dermoscopic images. It was developed as a final-year
+            engineering project at ENSIAS (École Nationale Supérieure d'Informatique
+            et d'Analyse des Systèmes), Morocco.
+
+            ### Technical Architecture
+
+            **EfficientNet‑B0** (PyTorch) → **ONNX Runtime** (inference) → **FastAPI**
+            (backend) → **Gradio** (frontend)
+
+            The full pipeline includes data validation (Great Expectations), experiment
+            tracking (MLflow), data versioning (DVC), patient-aware train/val/test splits,
+            and comprehensive monitoring (Prometheus metrics, drift detection).
+
+            ### Limitations
+
+            - Trained exclusively on the HAM10000 dataset, which is biased toward
+              lighter skin tones and European populations.
+            - Not validated for clinical use — this is a research prototype.
+            - Performance may degrade on images acquired under different conditions
+              (lighting, camera, magnification).
+            - Predictions near the decision boundary are flagged for review but
+              should not replace professional judgement.
+
+            ### Resources
+
+            - **API documentation:** [selba-melanoma-api.hf.space/docs](https://selba-melanoma-api.hf.space/docs)
+            """)
+
+    # ── Event Wiring ───────────────────────────────────────────────────────
     predict_btn.click(
         fn=handle_predict,
-        inputs=[image_input],
-        outputs=[result_header, result_details, gauge_chart, review_warning, explain_text, confidence_badge, uncertainty_val],
+        inputs=[predict_image],
+        outputs=[result_header, result_details, gauge_chart, review_warning],
     )
     explain_btn.click(
         fn=handle_explain,
         inputs=[explain_image],
         outputs=[gradcam_output, explain_text],
     )
-    comp_image.change(
-        fn=handle_compare,
-        inputs=[comp_image],
-        outputs=[comp_output],
-    )
 
 # ── Entrypoint ──────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860)
+    demo.launch(server_name="0.0.0.0", server_port=7860, css=CUSTOM_CSS, theme=_theme)

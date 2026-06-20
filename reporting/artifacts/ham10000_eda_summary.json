@@ -1,0 +1,65 @@
+{
+  "rows": 10015,
+  "unique_lesions": 7470,
+  "class_counts": [
+    {
+      "diagnosis": "nv",
+      "count": 6705,
+      "percentage": 66.95
+    },
+    {
+      "diagnosis": "mel",
+      "count": 1113,
+      "percentage": 11.11
+    },
+    {
+      "diagnosis": "bkl",
+      "count": 1099,
+      "percentage": 10.97
+    },
+    {
+      "diagnosis": "bcc",
+      "count": 514,
+      "percentage": 5.13
+    },
+    {
+      "diagnosis": "akiec",
+      "count": 327,
+      "percentage": 3.27
+    },
+    {
+      "diagnosis": "vasc",
+      "count": 142,
+      "percentage": 1.42
+    },
+    {
+      "diagnosis": "df",
+      "count": 115,
+      "percentage": 1.15
+    }
+  ],
+  "age_stats": {
+    "count": 9958,
+    "missing": 57,
+    "min": 0.0,
+    "max": 85.0,
+    "mean": 51.863828077927295,
+    "median": 50.0
+  },
+  "image_size_stats": {
+    "count": 10015,
+    "width_min": 600,
+    "width_max": 600,
+    "width_mean": 600.0,
+    "height_min": 450,
+    "height_max": 450,
+    "height_mean": 450.0
+  },
+  "lesion_count_stats": {
+    "lesions": 7470,
+    "min_images_per_lesion": 1,
+    "max_images_per_lesion": 6,
+    "mean_images_per_lesion": 1.3406961178045516,
+    "median_images_per_lesion": 1.0
+  }
+}

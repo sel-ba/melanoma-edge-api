@@ -22,15 +22,12 @@ reports/
 Rapport_de_Projet_de_fin_d_année__Copy_/
 great_expectations/
 gx/
-hf_space/
 .env
 *.pem
 *.key
 secrets/
 notebooks/models/
 notebooks/reports/
-README.spaces.md
-requirements.spaces.txt
 requirements.txt
 requirements.full.txt
 configs/training/quick_*.yaml

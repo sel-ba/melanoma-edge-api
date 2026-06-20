@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import torch
 import torch.nn as nn
-import timm
+from torchvision.models import resnet50, ResNet50_Weights
 
 
 class ResNetBaseline(nn.Module):
@@ -19,14 +19,11 @@ class ResNetBaseline(nn.Module):
         self.model_name = model_name
         self.num_classes = num_classes
 
-        self.backbone = timm.create_model(
-            model_name,
-            pretrained=pretrained,
-            num_classes=0,
-            global_pool="avg",
-        )
+        weights = ResNet50_Weights.IMAGENET1K_V2 if pretrained else None
+        self.backbone = resnet50(weights=weights)
+        feature_dim = self.backbone.fc.in_features
+        self.backbone.fc = nn.Identity()
 
-        feature_dim = self.backbone.num_features
         self.classifier = nn.Sequential(
             nn.BatchNorm1d(feature_dim),
             nn.Dropout(p=dropout_rate),

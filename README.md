@@ -1,10 +1,10 @@
-# 🔬 Melanoma Edge Detection API
+# Melanoma Edge Detection API
 
 > A production-grade, offline-first AI system for melanoma risk assessment — optimized for edge deployment on resource-constrained clinical devices.
 
 ---
 
-## 🎯 Why This Exists
+## Why This Exists
 
 Melanoma is the deadliest form of skin cancer, yet early detection dramatically improves survival rates. In low-resource or rural clinical environments, specialist dermatologists are scarce — patients wait weeks for screening. An AI tool that runs **offline**, on a tablet or embedded device, with **zero cloud dependency**, directly addresses this gap.
 
@@ -12,7 +12,7 @@ This project implements a **complete MLOps pipeline** from raw data to edge-depl
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```mermaid
 graph LR
@@ -29,7 +29,7 @@ graph LR
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Docker (recommended)
 
@@ -75,20 +75,27 @@ curl -X POST http://localhost:8080/api/v1/predict \
 
 ---
 
-## 📊 Performance
+## Performance
 
-| Metric | Value |
-|--------|-------|
-| Model Size (FP32) | 17.4 MB |
-| Model Size (INT8) | 5.2 MB |
-| ROC-AUC | ≥ 0.85 |
-| Sensitivity (melanoma) | ≥ 0.80 |
-| p99 Latency (CPU) | < 100 ms |
-| Throughput | ~30 FPS |
+| Metric | Value | Notes |
+|--------|-------|-------|
+| Model Size (FP32 ONNX) | 16.6 MB | EfficientNet-B0, production-ready |
+| Model Size (INT8) | 4.7 MB | **Not production-ready** — see INT8 note below |
+| ROC-AUC | 0.91 | On held-out test set |
+| Sensitivity @ 0.15 threshold | 0.80 | Tuned for screening (avoid missed melanomas) |
+| Specificity @ 0.15 threshold | 0.84 | Acceptable for screening tool |
+| p99 Latency (CPU) | ~18 ms | ONNX Runtime, Intel i7 |
+| Throughput | ~55 FPS | Batch-1 inference |
+
+### INT8 Quantization Limitation
+
+**EfficientNet-B0 is not compatible with INT8 quantization** at acceptable accuracy. All five quantization strategies tested (dynamic QInt8, dynamic QUInt8, static QDQ with entropy calibration, static QDQ with minmax calibration, per-channel QDQ) produced **10–15 % AUC drops** (from 0.91 down to 0.76–0.81). This is a well-documented limitation caused by EfficientNet's SiLU activation function and depthwise separable convolutions, which are fundamentally hostile to integer quantization.
+
+**Our recommendation**: Deploy FP32 ONNX (16.6 MB). This size is practical for edge devices (Raspberry Pi 4 has 2–8 GB RAM) and preserves the full diagnostic accuracy. The quantization analysis is preserved in `scripts/quantize_test.py` and `reporting/artifacts/quantization_comparison.json` as a research finding.
 
 ---
 
-## 🧠 Key Design Decisions
+## Key Design Decisions
 
 - **EfficientNet-B0** — Best accuracy-to-parameter ratio under 5MB; ideal for edge
 - **ONNX Runtime** — Hardware-agnostic inference (CPU/GPU/NPU), no PyTorch at runtime
@@ -99,7 +106,7 @@ curl -X POST http://localhost:8080/api/v1/predict \
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ├── src/
@@ -115,16 +122,21 @@ curl -X POST http://localhost:8080/api/v1/predict \
 │   └── validation/       # Great Expectations, image integrity, duplicates
 ├── configs/              # YAML configs for training, inference, monitoring
 ├── models/onnx/          # Exported ONNX models (FP32 + INT8)
-├── notebooks/            # 10 Jupyter notebooks covering full pipeline
+├── reporting/            # Unified documentation & reporting
+│   ├── thesis/            # ENSIAS PFA thesis (LaTeX source)
+│   ├── figures/           # Report figures and plots
+│   ├── compiled/          # Generated PDF reports
+│   ├── artifacts/         # Pipeline output artifacts (JSON/CSV)
+│   ├── docs/              # Architecture docs, ADRs, runbooks
+│   └── notebooks/         # 10 Jupyter notebooks (full pipeline)
 ├── docker/               # Dockerfiles (x86 + ARM64) and docker-compose
 ├── tests/                # Unit and integration tests
-├── reports/              # Artifacts, figures, and analysis outputs
 └── mlflow/               # MLflow experiment tracking data
 ```
 
 ---
 
-## 🔄 MLOps Pipeline
+## MLOps Pipeline
 
 | Tool | Purpose |
 |------|---------|
@@ -137,7 +149,7 @@ curl -X POST http://localhost:8080/api/v1/predict \
 
 ---
 
-## ⚠️ Limitations & Ethics
+## Limitations & Ethics
 
 ### Dataset Bias
 HAM10000 is heavily skewed toward lighter skin tones (Fitzpatrick scale I–III). Model performance on skin types IV–VI is **unknown and unvalidated**. Do not deploy in diverse populations without additional evaluation.
@@ -152,7 +164,7 @@ This system is an **educational/research tool**, NOT a cleared medical device. I
 
 ---
 
-## 🧪 Development
+## Development
 
 ```bash
 make test         # Run tests with coverage
@@ -166,6 +178,6 @@ make benchmark    # Latency benchmarks
 
 ---
 
-## 📄 License
+## License
 
 This project is for educational purposes. See dataset-specific licenses for HAM10000 data usage terms.

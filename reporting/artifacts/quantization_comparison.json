@@ -1,0 +1,37 @@
+{
+  "fp32": {
+    "auc": 0.9086,
+    "sensitivity": 0.4194,
+    "specificity": 0.9582,
+    "size_mb": 16.55,
+    "auc_drop_vs_fp32": 0.0
+  },
+  "old_int8_broken": {
+    "auc": 0.7667,
+    "sensitivity": 0.1989,
+    "specificity": 0.9627,
+    "size_mb": 4.97,
+    "auc_drop_vs_fp32": 0.1419
+  },
+  "qdq_pc_u8act_i8w": {
+    "auc": 0.8031,
+    "sensitivity": 0.1183,
+    "specificity": 0.9635,
+    "size_mb": 4.97,
+    "auc_drop_vs_fp32": 0.1055
+  },
+  "qdq_pc_u8act_u8w": {
+    "auc": 0.6943,
+    "sensitivity": 0.0484,
+    "specificity": 0.9851,
+    "size_mb": 4.97,
+    "auc_drop_vs_fp32": 0.2143
+  },
+  "qdq_pc_minmax": {
+    "auc": 0.6956,
+    "sensitivity": 0.0484,
+    "specificity": 0.9836,
+    "size_mb": 4.97,
+    "auc_drop_vs_fp32": 0.213
+  }
+}

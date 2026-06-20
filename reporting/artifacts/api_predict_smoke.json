@@ -1,0 +1,22 @@
+{
+  "predicted_class": "benign",
+  "melanoma_probability": 0.015977682545781136,
+  "all_probabilities": [
+    {
+      "label": "benign",
+      "probability": 0.984022319316864
+    },
+    {
+      "label": "melanoma",
+      "probability": 0.015977682545781136
+    }
+  ],
+  "uncertainty": 0.03195536509156227,
+  "confidence_level": "high",
+  "requires_review": false,
+  "review_reason": null,
+  "is_calibrated": false,
+  "model_version": "efficientnet-b0-fp32-onnx",
+  "latency_ms": 11.13,
+  "image_hash": "c12642582e4930fb"
+}

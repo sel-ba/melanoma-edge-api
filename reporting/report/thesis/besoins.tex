@@ -1,0 +1,73 @@
+
+\chapter{Requirements Analysis}
+\begin{spacing}{1.3}
+
+\section{Functional Requirements}
+
+Functional requirements define the specific behaviours and capabilities expected from the MLOps pipeline and inference API. Table~\ref{tab:fr} enumerates them with priority classifications.
+
+\begin{table}[H]
+\centering
+\caption{Functional requirements. Priority: M = Mandatory, D = Desirable.}
+\label{tab:fr}
+\begin{tabular}{p{0.7cm}p{9.5cm}p{2cm}}
+\toprule
+\textbf{ID} & \textbf{Description} & \textbf{Priority} \\
+\midrule
+FR1  & Accept dermoscopic image upload (JPEG/PNG, max 10~MB) via HTTP POST & M \\
+FR2  & Return melanoma probability (0.0--1.0) with confidence level (low/medium/high) & M \\
+FR3  & Generate Grad-CAM heatmap overlay on the input image & D \\
+FR4  & Flag predictions in the ambiguous range (0.30--0.60) as requiring clinical review & M \\
+FR5  & Cache predictions by image SHA-256 hash (LRU, 1000 entries, 1-hour TTL) & D \\
+FR6  & Expose Prometheus-compatible metrics endpoint & D \\
+FR7  & Run data drift detection on demand & D \\
+FR8  & Provide health and readiness endpoints for orchestration & M \\
+FR9  & Expose model version in API responses for traceability & M \\
+FR10 & Export trained PyTorch model to ONNX format (opset 17) & M \\
+FR11 & Quantise ONNX model to INT8 precision with calibration dataset & M \\
+FR12 & Log all training experiments (parameters, metrics, artefacts) to MLflow & M \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Non-Functional Requirements}
+
+Non-functional requirements define quality attributes and performance targets. Table~\ref{tab:nfr} presents them with measurable quantified targets.
+
+\begin{table}[H]
+\centering
+\caption{Non-functional requirements with quantitative targets.}
+\label{tab:nfr}
+\begin{tabular}{p{0.9cm}p{8.5cm}p{3cm}}
+\toprule
+\textbf{ID} & \textbf{Description} & \textbf{Target} \\
+\midrule
+NFR1  & Inference latency at the 99\textsuperscript{th} percentile & $<$ 200~ms \\
+NFR2  & Model file size (quantised ONNX) & $<$ 10~MB \\
+NFR3  & ROC-AUC on held-out test set (melanoma vs. benign) & $\geq$ 0.85 \\
+NFR4  & Sensitivity (recall) for melanoma detection & $\geq$ 0.80 \\
+NFR5  & Image integrity validation coverage on dataset & 100\% \\
+NFR6  & Patient data leakage between train/val/test splits & 0 cases \\
+NFR7  & Docker production image size & $<$ 800~MB \\
+NFR8  & API availability on edge device under continuous load & $>$ 99\% \\
+NFR9  & Structured JSON logging for all API requests and errors & 100\% of requests \\
+NFR10 & Graceful degradation on internal errors (no HTTP 5xx) & All errors caught \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The latency target of $<$ 200~ms at p99 was chosen based on the clinical workflow: a dermatologist spends 5--30 seconds examining a lesion, so 200~ms of inference latency is imperceptible. The model size target of $<$ 10~MB accounts for the 16--32~GB SD card on a Raspberry Pi where the model coexists with the OS and dependencies. The AUC and sensitivity targets are calibrated against the literature: Esteva et al.~\cite{esteva2017} achieved AUC 0.96 on clinical images; Tschandl et al.~\cite{tschandl2018} achieved AUC 0.86 on HAM10000. Given the smaller model and resource constraints, AUC $\geq$ 0.85 was deemed realistic and clinically useful.
+
+NFR6 (zero patient leakage) is non-negotiable. In medical imaging, multiple images frequently belong to the same patient. If images from the same lesion appear in both training and test sets, the model memorises lesion-specific features rather than learning generalisable disease patterns, inflating performance metrics and creating a false sense of safety.
+
+\section{MLOps-Specific Requirements}
+
+Beyond standard requirements, the MLOps nature of this project imposes additional lifecycle-spanning requirements. \textbf{Reproducibility} (MR1) demands that every training experiment be traceable to a specific git commit, DVC data version, MLflow run ID, and hyperparameter configuration, with identical inputs producing identical outputs. \textbf{Automation} (MR2) requires the CI pipeline to execute on every push and pull request, with CD building Docker images and deploying on version tags. \textbf{Monitoring} (MR3) mandates drift detection, latency tracking, and prediction distribution monitoring with Prometheus export and Evidently AI dashboards. \textbf{Testing} (MR4) requires code coverage exceeding 75\%, with integration tests validating all API endpoints, prediction caching, and metric emission. \textbf{Documentation} (MR5) mandates a Model Card, Data Card, Architecture Decision Records, and operational runbooks, all versioned alongside code. \textbf{Versioning} (MR6) requires independent versioning of data (DVC), code (git), models (MLflow Model Registry), and configurations (YAML files in git), with cross-references stored in MLflow tags.
+
+\section{Edge Constraints}
+
+The target edge device is a Raspberry Pi~4 Model~B with a quad-core ARM Cortex-A72 at 1.5~GHz, 1~GB LPDDR4 RAM (minimum variant), 32~GB microSD storage, and no GPU (CPU-only inference) running Raspberry Pi OS (Debian Bookworm, 64-bit). The 1~GB RAM constraint is binding: the ONNX Runtime session consumes approximately 120~MB, leaving approximately 700~MB for the OS and FastAPI workers.
+
+Software constraints include mandatory offline operation requiring all assets bundled into the Docker image, exclusive use of free and open-source tools under OSI-approved licences, Python~3.10 for ONNX Runtime compatibility, and ARM64 wheel availability on PyPI for all packages. Scope constraints limit the pipeline to binary classification (melanoma vs. benign), a single training dataset (HAM10000), and inference-only operation on the edge device with retraining executed offline on a GPU machine.
+
+\end{spacing}

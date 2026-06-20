@@ -1,0 +1,34 @@
+{
+  "fp32": {
+    "model_path": "models/onnx/efficientnet_b0_fp32_new.onnx",
+    "model_size_mb": 16.548988342285156,
+    "providers": [
+      "CPUExecutionProvider"
+    ],
+    "n_runs": 200,
+    "mean_ms": 4.719526690005296,
+    "std_ms": 0.2231059306768063,
+    "p50_ms": 4.692772001362755,
+    "p95_ms": 4.847453300317283,
+    "p99_ms": 5.739711451205947,
+    "min_ms": 4.575616003421601,
+    "max_ms": 7.259917998453602,
+    "throughput_fps": 211.88565415208572
+  },
+  "int8_qdq": {
+    "model_path": "models/onnx/efficientnet_b0_int8_qdq.onnx",
+    "model_size_mb": 4.9670867919921875,
+    "providers": [
+      "CPUExecutionProvider"
+    ],
+    "n_runs": 200,
+    "mean_ms": 3.919457240081101,
+    "std_ms": 0.47746169366768637,
+    "p50_ms": 3.8496255001518875,
+    "p95_ms": 4.148353251184744,
+    "p99_ms": 4.398820618152965,
+    "min_ms": 3.7653879990102723,
+    "max_ms": 10.440866000863025,
+    "throughput_fps": 255.13736692259667
+  }
+}

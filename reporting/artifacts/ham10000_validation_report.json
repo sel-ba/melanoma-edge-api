@@ -1,0 +1,85 @@
+{
+  "schema_report": {
+    "columns_match": true,
+    "missing_values": {
+      "lesion_id": 0,
+      "image_id": 0,
+      "dx": 0,
+      "dx_type": 0,
+      "age": 57,
+      "sex": 0,
+      "localization": 0
+    },
+    "duplicate_image_ids": 0,
+    "duplicate_lesion_ids": 2545,
+    "invalid_diagnoses": [],
+    "rows": 10015,
+    "unique_images": 10015,
+    "unique_lesions": 7470
+  },
+  "coverage_report": {
+    "metadata_rows": 10015,
+    "indexed_images": 10015,
+    "missing_images": [],
+    "missing_image_count": 0,
+    "extra_image_count": 0
+  },
+  "integrity_report": {
+    "total_images": 10015,
+    "valid_images": 10015,
+    "invalid_images": 0,
+    "validity_rate": 1.0,
+    "invalid_paths_sample": [],
+    "modes": {
+      "RGB": 10015
+    }
+  },
+  "duplicate_report": {
+    "split_image_overlap": {
+      "train_val": 0,
+      "train_test": 0,
+      "val_test": 0
+    },
+    "split_lesion_overlap": {
+      "train_val": 0,
+      "train_test": 0,
+      "val_test": 0
+    },
+    "cross_split_phash_collision_count": 1,
+    "collision_samples": [
+      [
+        "e699996666999926",
+        [
+          {
+            "split": "train",
+            "image_id": "ISIC_0032228",
+            "path": "/home/selba/Desktop/ENSIAS/Mlops/PFA/code/data/raw/HAM10000_images_part_2/ISIC_0032228.jpg"
+          },
+          {
+            "split": "test",
+            "image_id": "ISIC_0033598",
+            "path": "/home/selba/Desktop/ENSIAS/Mlops/PFA/code/data/raw/HAM10000_images_part_2/ISIC_0033598.jpg"
+          }
+        ]
+      ]
+    ]
+  },
+  "summary": [
+    {
+      "check": "schema",
+      "passed": true
+    },
+    {
+      "check": "coverage",
+      "passed": true
+    },
+    {
+      "check": "integrity",
+      "passed": true
+    },
+    {
+      "check": "duplicates",
+      "passed": false
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "config_path": "/home/selba/Desktop/ENSIAS/Mlops/PFA/code/configs/training/resnet50_baseline.yaml",
+  "train_size": 6990,
+  "val_size": 1484,
+  "train_class_counts": {
+    "0": 6219,
+    "1": 771
+  },
+  "val_class_counts": {
+    "0": 1317,
+    "1": 167
+  },
+  "class_weights": [
+    0.7001997232437134,
+    1.2998002767562866
+  ],
+  "batch_size": 32,
+  "num_workers": 4
+}

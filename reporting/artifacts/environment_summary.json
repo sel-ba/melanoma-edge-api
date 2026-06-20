@@ -1,0 +1,16 @@
+{
+  "python": "3.10.20",
+  "executable": "/home/selba/Desktop/ENSIAS/Mlops/PFA/code/.venv/bin/python",
+  "platform": "Linux-7.0.10-1-cachyos-x86_64-with-glibc2.43",
+  "machine": "x86_64",
+  "working_directory": "/home/selba/Desktop/ENSIAS/Mlops/PFA/code/notebooks",
+  "project_root": "/home/selba/Desktop/ENSIAS/Mlops/PFA/code",
+  "packages": {
+    "numpy": "1.26.4",
+    "pandas": "2.3.3",
+    "matplotlib": "3.10.9",
+    "seaborn": "0.13.2",
+    "jupyterlab": "4.5.7",
+    "ipykernel": "6.31.0"
+  }
+}

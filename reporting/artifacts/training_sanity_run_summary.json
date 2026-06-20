@@ -1,0 +1,6 @@
+{
+  "run_id": "71ddd60745f74771bc29dc1d88aa5a71",
+  "tracking_uri": "file:///home/selba/Desktop/ENSIAS/Mlops/PFA/code/mlflow",
+  "best_val_auc": 0.7425,
+  "metrics_plot": "/home/selba/Desktop/ENSIAS/Mlops/PFA/code/reports/figures/training_sanity_metrics.png"
+}

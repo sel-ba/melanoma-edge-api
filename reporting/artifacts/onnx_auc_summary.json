@@ -1,0 +1,7 @@
+{
+  "fp32_auc": 0.8577828906086593,
+  "int8_static_auc": 0.7293850658857979,
+  "int8_dynamic_auc": null,
+  "static_auc_drop": 0.12839782472286143,
+  "dynamic_auc_drop": null
+}

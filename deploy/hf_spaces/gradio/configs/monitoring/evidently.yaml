@@ -1,0 +1,19 @@
+# Evidently AI drift detection configuration
+
+drift:
+  window_size: 500
+  drift_threshold: 0.05
+  metrics:
+    - dataset_drift
+    - column:
+        name: melanoma_probability
+    - column:
+        name: uncertainty
+
+reports:
+  output_dir: reports/drift
+  format: html
+
+latency:
+  warning_ms: 150
+  critical_ms: 300

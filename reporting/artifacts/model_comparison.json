@@ -1,0 +1,52 @@
+{
+  "generated": "2026-06-03",
+  "models": {
+    "resnet50_full": {
+      "model": "resnet50",
+      "auc": 0.8402056933968055,
+      "params": "24037698",
+      "trainable": "24037698",
+      "epochs": "30"
+    },
+    "efficientnet_full": {
+      "model": "efficientnet_b0",
+      "auc": 0.8687,
+      "params": "4339070",
+      "epochs": "10+30"
+    },
+    "sanity-subset": {
+      "model": "efficientnet_b0",
+      "auc": 0.7425,
+      "params": "4339070",
+      "trainable": "4339070",
+      "epochs": "2"
+    },
+    "efficientnet-b0-quick": {
+      "model": "efficientnet_b0",
+      "auc": 0.8005,
+      "params": "4339070",
+      "trainable": "4339070",
+      "epochs": "3+5"
+    },
+    "resnet50-quick": {
+      "model": "resnet50",
+      "auc": 0.7845,
+      "params": "24037698",
+      "trainable": "24037698",
+      "epochs": "3+5"
+    },
+    "mobilenetv3-quick": {
+      "model": "mobilenetv3_small_100",
+      "auc": 0.8369,
+      "params": "1521794",
+      "trainable": "1521794",
+      "epochs": "3+5"
+    },
+    "resnet_full": {
+      "model": "resnet50",
+      "auc": 0.8402,
+      "params": "24037698",
+      "epochs": "10+30"
+    }
+  }
+}

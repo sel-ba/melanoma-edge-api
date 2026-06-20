@@ -1,0 +1,20 @@
+{
+  "train_counts": {
+    "0": 6219,
+    "1": 771
+  },
+  "val_counts": {
+    "0": 1317,
+    "1": 167
+  },
+  "train_sample_counts": {
+    "0": 200,
+    "1": 200
+  },
+  "val_sample_counts": {
+    "0": 80,
+    "1": 80
+  },
+  "train_sample_size": 400,
+  "val_sample_size": 160
+}

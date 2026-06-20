@@ -1,0 +1,10 @@
+{
+  "model_name": "efficientnet_b0",
+  "total_params": 4339070,
+  "trainable_params": 4339070,
+  "batch_logits_shape": [
+    16,
+    2
+  ],
+  "batch_loss": 6.627020835876465
+}

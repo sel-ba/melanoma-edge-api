@@ -1,0 +1,6 @@
+{
+  "temperature": 1.498450756072998,
+  "ece_before": 0.044032053675532666,
+  "ece_after": 0.052379004074878124,
+  "reliability_plot": "/home/selba/Desktop/ENSIAS/Mlops/PFA/code/reports/figures/reliability_diagram.png"
+}

@@ -36,6 +36,7 @@ class ONNXInferenceEngine:
     def _load_thresholds(self, config_path: str) -> None:
         config = yaml.safe_load(Path(config_path).read_text(encoding="utf-8"))
         self.melanoma_threshold = float(config.get("melanoma_threshold", 0.5))
+        self.decision_boundary_margin = float(config.get("decision_boundary_margin", 0.15))
         self.uncertainty_threshold = float(config.get("uncertainty_threshold", 0.2))
         self.low_confidence_threshold = float(config.get("low_confidence_threshold", 0.15))
 
@@ -60,8 +61,7 @@ class ONNXInferenceEngine:
         }
 
     def is_high_confidence(self, melanoma_prob: float, uncertainty: float) -> tuple[bool, str | None]:
-        boundary_margin = 0.15
-        if abs(melanoma_prob - self.melanoma_threshold) < boundary_margin:
+        if abs(melanoma_prob - self.melanoma_threshold) < self.decision_boundary_margin:
             return True, "prediction_near_decision_boundary"
         if uncertainty > self.uncertainty_threshold:
             return True, "high_epistemic_uncertainty"

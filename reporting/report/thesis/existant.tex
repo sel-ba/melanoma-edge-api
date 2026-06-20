@@ -1,0 +1,113 @@
+
+\chapter{State of the Art}
+\begin{spacing}{1.3}
+
+\section{MLOps Evolution}
+
+The term MLOps emerged from the intersection of machine learning and DevOps, formalised by Google's 2018 whitepaper on continuous delivery pipelines for ML systems~\cite{google_mlops}. It denotes the set of practices, tools, and cultural norms governing the end-to-end lifecycle of machine learning models in production.
+
+The intellectual foundations of MLOps trace back to two seminal papers. In 2015, Sculley et al.~\cite{sculley2015} published ``Hidden Technical Debt in Machine Learning Systems'' at NeurIPS, arguing that ML systems incur a unique form of technical debt invisible to traditional software engineering metrics. The paper identified entanglement, hidden feedback loops, undeclared consumers, data dependencies, and configuration debt as failure modes compounding over time. It famously observed that only a small fraction of code in a production ML system is devoted to the actual learning algorithm -- the rest is infrastructure. In 2016, Breck et al. proposed the ML Test Score~\cite{breck2016}, a rubric of 28 tests spanning data validation, model evaluation, and infrastructure verification, shifting discourse from ad-hoc experimentation to systematic engineering discipline.
+
+Google's maturity model defines three progressive levels, illustrated in Figure~\ref{fig:mlops_levels}. Level~0 (Manual Process) represents the baseline where the entire workflow is manual and script-driven, with no automated pipeline, no experiment tracking, and no CI/CD. Level~1 (Automated Training Pipeline) features automated and reproducible training with data and model version tracking through tools like DVC and MLflow. Level~2 (CI/CD Automation) automates the entire lifecycle -- data validation, training, testing, deployment, and monitoring -- on code or data changes, with canary deployments and automated rollbacks.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    level/.style={rectangle, rounded corners=5pt, draw=black!60, fill=blue!12, text width=9cm, align=left, minimum height=1.6cm, font=\small},
+    label/.style={font=\bfseries\small, text=black!70},
+    arrow/.style={-{Stealth[length=5pt]}, thick, black!40},
+]
+\node[label] at (0, -0.5) {MLOps Maturity};
+\node[level] (l0) at (0, -1.5) {\textbf{Level 0 -- Manual Process}\\[2pt] \footnotesize Manual, script-driven. No automation, no experiment tracking, no CI/CD.};
+\node[level, below=0.4cm of l0, xshift=0.8cm] (l1) {\textbf{Level 1 -- Automated Training}\\[2pt] \footnotesize Automated, reproducible training. Data/model versioning (DVC, MLflow).};
+\node[level, below=0.4cm of l1, xshift=0.8cm] (l2) {\textbf{Level 2 -- CI/CD Automation}\\[2pt] \footnotesize Full lifecycle automation. Canary deployments, automated rollbacks.};
+
+\draw[arrow] (l0.south) -- ++(0,-0.15) -| (l1.north);
+\draw[arrow] (l1.south) -- ++(0,-0.15) -| (l2.north);
+\end{tikzpicture}
+\caption{MLOps maturity model: three progressive levels of automation.}
+\label{fig:mlops_levels}
+\end{figure}
+
+This project targets Level~1 as its primary objective, with deliberate encroachments into Level~2 in CI/CD, monitoring, and model registry management. Full Level~2 continuous training exceeds the scope of a final-year academic project.
+
+\section{Existing Platforms}
+
+The MLOps tools landscape has expanded rapidly since 2018. Table~\ref{tab:platforms} compares the major platforms.
+
+\begin{table}[H]
+\centering
+\caption{Comparison of major MLOps platforms.}
+\label{tab:platforms}
+\begin{tabular}{lp{2.2cm}p{2.2cm}p{2.2cm}p{2.2cm}}
+\toprule
+\textbf{Feature} & \textbf{MLflow} & \textbf{Kubeflow} & \textbf{SageMaker} & \textbf{W\&B} \\
+\midrule
+Experiment tracking & Native & Via Pipelines & Native & Core feature \\
+Pipeline orchestration & Limited & Kubernetes-native & Step Functions & Limited \\
+Model registry & Native & Via KServe & Native & Plugin \\
+Monitoring & Minimal & Katib & Model Monitor & Via integrations \\
+Self-hosted & Yes & Yes & No & Partial \\
+Open source & Apache 2.0 & Apache 2.0 & Proprietary & MIT \\
+Learning curve & Low & High & Medium & Low \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This project adopts self-hosted open-source tools (MLflow, DVC, Great Expectations, Evidently AI) for four reasons: no vendor lock-in allows pipeline relocation to any infrastructure, cloud MLOps platforms incur prohibitive costs for student projects, edge compatibility requires offline operation contradicting cloud-managed services, and self-hosting exposes tool internals providing deeper educational value.
+
+\section{Melanoma Detection Literature}
+
+The International Skin Imaging Collaboration (ISIC) has organised annual challenges since 2016, providing standardised datasets and benchmarks for skin lesion analysis~\cite{isic_challenge}. Key milestones include ISIC~2016 (binary classification, 900 images, winning AUC 0.80), ISIC~2017 (3-class classification, 2,000 images, winning AUC 0.87), ISIC~2018 (7-class classification on HAM10000, 10,015 images), and ISIC~2019--2020 with larger multi-modal datasets where ensemble methods became dominant.
+
+Esteva et al.~\cite{esteva2017} published a landmark study in \textit{Nature} demonstrating dermatologist-level skin cancer classification using a single Inception-v3 CNN trained on 129,450 clinical images, achieving an AUC of 0.96 on biopsy-proven cases and performing on par with 21 board-certified dermatologists. Tschandl et al.~\cite{tschandl2018} established baseline results for the HAM10000 dataset using ResNet-50, reporting an average AUC of 0.86 for melanoma detection. Table~\ref{tab:related} compares these results.
+
+\begin{table}[H]
+\centering
+\caption{Comparison of melanoma detection approaches in the literature.}
+\label{tab:related}
+\begin{tabular}{lllc}
+\toprule
+\textbf{Study} & \textbf{Model} & \textbf{Dataset} & \textbf{AUC / Acc} \\
+\midrule
+Esteva et al. (2017)  & Inception-v3  & 129K clinical   & AUC 0.96 \\
+Tschandl et al. (2018)& ResNet-50     & HAM10000        & AUC 0.86 \\
+Gessert et al. (2020) & EfficientNet-B5 & ISIC 2019     & Acc 0.886 \\
+Khan et al. (2021)    & Ensemble CNN  & HAM10000        & Acc 0.905 \\
+This project          & EfficientNet-B0 & HAM10000      & AUC 0.91 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A critical limitation of most prior work is the absence of a production pipeline. Models are trained and evaluated offline; deployment, monitoring, and safety are not addressed. This project bridges that gap by embedding the model within a complete MLOps framework.
+
+\section{Edge Inference Runtimes}
+
+Deploying medical AI on edge devices requires navigating the compute-memory-accuracy triangle: edge devices have 1--4~GB RAM, ARM CPUs without GPUs, and limited storage. Table~\ref{tab:engines} compares the major inference engines.
+
+\begin{table}[H]
+\centering
+\caption{Comparison of edge inference engines.}
+\label{tab:engines}
+\begin{tabular}{llllp{2.2cm}}
+\toprule
+\textbf{Engine} & \textbf{Optimisation} & \textbf{ARM} & \textbf{INT8} & \textbf{Licence} \\
+\midrule
+ONNX Runtime & Graph-level + quantisation & Full & Yes & MIT \\
+TensorRT     & Kernel auto-tuning          & Jetson only & Yes & Proprietary \\
+TFLite       & Operator fusion             & Full & Yes & Apache 2.0 \\
+CoreML       & Apple Neural Engine         & No & Yes & Proprietary \\
+OpenVINO     & Layer fusion + low-precision & Partial & Yes & Apache 2.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+ONNX Runtime was selected for this project because it is hardware-agnostic (the same .onnx model runs on x86, ARM64, and GPU backends), supports native INT8 quantisation via QDQ operators, has a well-maintained Python API with first-class asynchronous support, is MIT-licensed with no usage restrictions, and is actively maintained by Microsoft with regular releases. TensorRT offers superior performance on NVIDIA Jetson but ties the pipeline to specific hardware. TFLite excels on Android but has limited desktop support. CoreML is Apple-only. ONNX Runtime provides the broadest portability for a vendor-neutral edge pipeline.
+
+\section{Model Optimization}
+
+Quantisation reduces numerical precision of model weights and activations, yielding 2--4$\times$ model size reduction and 1.2--2$\times$ latency improvement. Post-Training Quantisation (PTQ) applies quantisation after training using a small calibration dataset without retraining. Quantisation-Aware Training (QAT) simulates quantisation during training for higher accuracy at additional cost. This project investigated INT8 post-training quantisation across five strategies but found it incompatible with EfficientNet-B0: all strategies produced 10--15\% AUC degradation due to SiLU activation and depthwise separable convolution incompatibility with integer arithmetic. The production model uses FP32 ONNX (16.6~MB).
+
+Pruning removes weights or channels to reduce computation. Unstructured pruning removes individual weights creating sparse matrices requiring sparse computation support. Structured pruning removes entire channels, immediately reducing FLOPs and memory. This project implements L1-norm structured pruning at the channel level, reporting sparsity ratios for each layer. Knowledge distillation, where a large teacher model trains a compact student model by transferring softened probability distributions, was deferred to future work due to time constraints.
+
+\end{spacing}

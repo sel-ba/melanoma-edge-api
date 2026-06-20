@@ -1,0 +1,40 @@
+# Data preprocessing configuration
+
+input_size: 224
+val_ratio: 0.15
+test_ratio: 0.15
+random_seed: 42
+
+normalization:
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+
+augmentation:
+  horizontal_flip: 0.5
+  vertical_flip: 0.5
+  random_rotate90: 0.5
+  shift_scale_rotate:
+    shift_limit: 0.1
+    scale_limit: 0.2
+    rotate_limit: 45
+    p: 0.7
+  brightness_contrast:
+    brightness_limit: 0.2
+    contrast_limit: 0.2
+    p: 0.5
+  hue_saturation:
+    hue_shift_limit: 10
+    sat_shift_limit: 20
+    val_shift_limit: 10
+    p: 0.4
+  coarse_dropout:
+    max_holes: 8
+    max_height: 28
+    max_width: 28
+    p: 0.3
+
+hair_removal:
+  kernel_size: 17
+  inpaint_radius: 6
+  hair_threshold: 10
+  skip_density: 0.02

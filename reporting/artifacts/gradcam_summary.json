@@ -1,0 +1,142 @@
+[
+  {
+    "image_id": "ISIC_0025175",
+    "label": 0,
+    "predicted_class": 0,
+    "confidence": 1.0,
+    "target_layer": "backbone.conv_head"
+  },
+  {
+    "image_id": "ISIC_0026599",
+    "label": 0,
+    "predicted_class": 0,
+    "confidence": 0.7879526019096375,
+    "target_layer": "backbone.conv_head"
+  },
+  {
+    "image_id": "ISIC_0026377",
+    "label": 0,
+    "predicted_class": 0,
+    "confidence": 1.0,
+    "target_layer": "backbone.conv_head"
+  },
+  {
+    "image_id": "ISIC_0027818",
+    "label": 0,
+    "predicted_class": 0,
+    "confidence": 1.0,
+    "target_layer": "backbone.conv_head"
+  },
+  {
+    "image_id": "ISIC_0029355",
+    "label": 0,
+    "predicted_class": 0,
+    "confidence": 0.9780529141426086,
+    "target_layer": "backbone.conv_head"
+  },
+  {
+    "image_id": "ISIC_0025803",
+    "label": 0,
+    "predicted_class": 0,
+    "confidence": 0.9994519352912903,
+    "target_layer": "backbone.conv_head"
+  },
+  {
+    "image_id": "ISIC_0027070",
+    "label": 0,
+    "predicted_class": 0,
+    "confidence": 1.0,
+    "target_layer": "backbone.conv_head"
+  },
+  {
+    "image_id": "ISIC_0024554",
+    "label": 1,
+    "predicted_class": 0,
+    "confidence": 0.9597026109695435,
+    "target_layer": "backbone.conv_head"
+  },
+  {
+    "image_id": "ISIC_0024982",
+    "label": 0,
+    "predicted_class": 0,
+    "confidence": 0.9945082068443298,
+    "target_layer": "backbone.conv_head"
+  },
+  {
+    "image_id": "ISIC_0028386",
+    "label": 0,
+    "predicted_class": 0,
+    "confidence": 1.0,
+    "target_layer": "backbone.conv_head"
+  },
+  {
+    "image_id": "ISIC_0033742",
+    "label": 0,
+    "predicted_class": 0,
+    "confidence": 0.6549791097640991,
+    "target_layer": "backbone.conv_head"
+  },
+  {
+    "image_id": "ISIC_0034103",
+    "label": 0,
+    "predicted_class": 0,
+    "confidence": 0.8141989707946777,
+    "target_layer": "backbone.conv_head"
+  },
+  {
+    "image_id": "ISIC_0031396",
+    "label": 0,
+    "predicted_class": 0,
+    "confidence": 0.9999946355819702,
+    "target_layer": "backbone.conv_head"
+  },
+  {
+    "image_id": "ISIC_0026075",
+    "label": 0,
+    "predicted_class": 0,
+    "confidence": 1.0,
+    "target_layer": "backbone.conv_head"
+  },
+  {
+    "image_id": "ISIC_0029445",
+    "label": 0,
+    "predicted_class": 0,
+    "confidence": 1.0,
+    "target_layer": "backbone.conv_head"
+  },
+  {
+    "image_id": "ISIC_0032338",
+    "label": 0,
+    "predicted_class": 0,
+    "confidence": 0.9997877478599548,
+    "target_layer": "backbone.conv_head"
+  },
+  {
+    "image_id": "ISIC_0024616",
+    "label": 0,
+    "predicted_class": 0,
+    "confidence": 1.0,
+    "target_layer": "backbone.conv_head"
+  },
+  {
+    "image_id": "ISIC_0033650",
+    "label": 0,
+    "predicted_class": 0,
+    "confidence": 0.7855325937271118,
+    "target_layer": "backbone.conv_head"
+  },
+  {
+    "image_id": "ISIC_0025083",
+    "label": 0,
+    "predicted_class": 0,
+    "confidence": 0.8869761228561401,
+    "target_layer": "backbone.conv_head"
+  },
+  {
+    "image_id": "ISIC_0032868",
+    "label": 0,
+    "predicted_class": 0,
+    "confidence": 0.9998134970664978,
+    "target_layer": "backbone.conv_head"
+  }
+]
